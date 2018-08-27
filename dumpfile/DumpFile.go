@@ -2,6 +2,10 @@ package dumpfile
 
 import "fmt"
 
+const (
+	AUX_FIELD = 250
+)
+
 type DumpFile struct {
 	Magic   string
 	Version uint64
@@ -9,7 +13,7 @@ type DumpFile struct {
 }
 
 type RedisDb struct {
-	Num uint32
+	Num      uint32
 	KVPaires []*KVPair
 }
 
@@ -35,31 +39,36 @@ type KVPair struct {
 	value      []byte
 }
 
-func ParseDump(reader *FileReader)*DumpFile  {
+func ParseDump(reader *FileReader) *DumpFile {
 	//fmt.Print(reader.ReadBytes(5))
-	magic:=reader.ReadString(5)
-	if "REDIS" != magic{
-		panic(reader.fileName()+" is not a standard dump file.")
+	magic := reader.ReadString(5)
+	if "REDIS" != magic {
+		panic(reader.fileName() + " is not a standard dump file.")
 	}
-	dump:=&DumpFile{Magic:magic}
-	dump.Version=reader.ReadStringToUInt64(4)
-	dbs:=make([]*RedisDb,0)
-	dbs=append(dbs,readDb(reader))
+	dump := &DumpFile{Magic: magic}
+	dump.Version = reader.ReadStringToUInt64(4)
+	buf:=reader.ReadByte();
+	if buf==AUX_FIELD{
+		len:=reader.ReadLength()
+		fmt.Print(len)
+	}
+	dbs := make([]*RedisDb, 0)
+	dbs = append(dbs, readDb(reader))
 
 	return dump
 }
 
-func readDb(reader *FileReader)*RedisDb {
-	flag1:=reader.ReadBytes(100)
+func readDb(reader *FileReader) *RedisDb {
+	flag1 := reader.ReadBytes(100)
 	fmt.Print(flag1)
 
-	flag:=reader.ReadByte()
+	flag := reader.ReadByte()
 	fmt.Print(flag)
 	fmt.Print(flag)
-	if 0xFE!=flag{
+	if 0xFE != flag {
 		panic(" it is not db flag")
 	}
-	db:=&RedisDb{}
-	db.Num=reader.ReadUInt32(1)
+	db := &RedisDb{}
+	db.Num = reader.ReadUInt32(1)
 	return db
 }

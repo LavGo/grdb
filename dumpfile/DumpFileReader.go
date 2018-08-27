@@ -103,4 +103,5 @@ func (self *FileReader) ReadLength() uint32 {
 			return binary.BigEndian.Uint32(buf2)
 		}
 	}
+	return 0
 }
